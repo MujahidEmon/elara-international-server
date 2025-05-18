@@ -14,7 +14,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
-    strict: true,
+    strict: false,
     deprecationErrors: true,
   },
 });
@@ -27,19 +27,34 @@ async function run() {
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
 
-    const ProductCollection = client
-      .db("ElaraProductDB")
-      .collection("products");
+    const ProductCollection = client.db("ElaraProductDB").collection("products");
     const usersCollection = client.db("ElaraProductDB").collection("users");
     const ordersCollection = client.db("ElaraProductDB").collection("orders");
     const cartProducts = client.db("ElaraProductDB").collection("cartProducts");
 
     // Get all products
-    app.get("/products", async (req, res) => {
-      const cursor = ProductCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
+    app.get('/products', async (req, res) => {
+      try {
+        const category = req.query.category;
+        const query = category ? { category } : {}; // short form
+        const products = await ProductCollection.find(query).toArray();
+        res.status(200).json(products);
+      } catch (error) {
+        console.error("Failed to fetch products:", error.message);
+        res.status(500).json({ message: "Server error. Try again later." });
+      }
     });
+
+    app.get("/categories", async (req, res) => {
+      try {
+        const categories = await ProductCollection.distinct("category");
+        res.send(categories);
+      } catch (error) {
+        console.error("Failed to get categories", error);
+        res.status(500).send({ error: "Failed to fetch categories" });
+      }
+    });
+
 
     // Get cart products by user email
     app.get("/cartProducts/:email", async (req, res) => {
