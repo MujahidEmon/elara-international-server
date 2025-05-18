@@ -27,13 +27,15 @@ async function run() {
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
 
-    const ProductCollection = client.db("ElaraProductDB").collection("products");
+    const ProductCollection = client
+      .db("ElaraProductDB")
+      .collection("products");
     const usersCollection = client.db("ElaraProductDB").collection("users");
     const ordersCollection = client.db("ElaraProductDB").collection("orders");
     const cartProducts = client.db("ElaraProductDB").collection("cartProducts");
 
     // Get all products
-    app.get('/products', async (req, res) => {
+    app.get("/products", async (req, res) => {
       try {
         const category = req.query.category;
         const query = category ? { category } : {}; // short form
@@ -54,7 +56,6 @@ async function run() {
         res.status(500).send({ error: "Failed to fetch categories" });
       }
     });
-
 
     // Get cart products by user email
     app.get("/cartProducts/:email", async (req, res) => {
@@ -212,8 +213,39 @@ async function run() {
 
     // Orders endpoints
     app.get("/orders", async (req, res) => {
-      const cursor = ordersCollection.find();
+      let query = {};
+      if (req.query.status) {
+        query = { status: req.query.status };
+      }
+      const cursor = ordersCollection.find(query);
       const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.put("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedOrder = req.body;
+      const order = {
+        $set: {
+          name: updatedOrder.name,
+          email: updatedOrder.email,
+          phone: updatedOrder.phone,
+          address: updatedOrder.address,
+          note: updatedOrder.note,
+          status: updatedOrder.status,
+        },
+      };
+      const result = await ordersCollection.updateOne(filter, order, options);
+      res.send(result);
+    });
+
+    // delete order
+    app.delete("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await ordersCollection.deleteOne(query);
       res.send(result);
     });
 
@@ -273,6 +305,29 @@ async function run() {
       } catch (error) {
         console.error("Delete error:", error);
         res.status(500).send({ error: "Server error" });
+      }
+    });
+
+    // Clear all cart products for a user after placing an order
+    app.delete("/cartProducts/clear/:email", async (req, res) => {
+      const email = req.params.email;
+
+      if (!email) {
+        return res.status(400).send({ error: "Email is required" });
+      }
+
+      try {
+        // Delete all cart items that match the email
+        const result = await cartProducts.deleteMany({ email });
+
+        res.send({
+          success: true,
+          message: "User's cart cleared successfully",
+          deletedCount: result.deletedCount,
+        });
+      } catch (error) {
+        console.error("Error clearing cart:", error);
+        res.status(500).send({ error: "Server error while clearing cart" });
       }
     });
 
