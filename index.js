@@ -8,7 +8,12 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://elara-international.web.app", "http://localhost:5173" , "http://localhost:5174", "https://elara-int-admin.web.app"],
+    origin: [
+      "https://elara-international.web.app",
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://elara-int-admin.web.app",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -39,6 +44,8 @@ async function run() {
     const usersCollection = client.db("ElaraProductDB").collection("users");
     const ordersCollection = client.db("ElaraProductDB").collection("orders");
     const cartProducts = client.db("ElaraProductDB").collection("cartProducts");
+    const complainsCollection = client.db("ElaraProductDB").collection("complains");
+    
 
     // Get all products
     app.get("/products", async (req, res) => {
@@ -368,6 +375,37 @@ async function run() {
         },
       };
       const result = await ordersCollection.updateOne(filter, order, options);
+      res.send(result);
+    });
+
+    // post a complain
+    app.post("/complains", async (req, res) => {
+      const newComplain = req.body;
+      console.log(newComplain);
+      const result = await complainsCollection.insertOne(newComplain);
+      res.send(result);
+    });
+
+    // get complains
+    app.get("/complains", async (req, res) => {
+      const cursor = complainsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // get single complains
+    app.get("/complains/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await complainsCollection.findOne(query);
+      res.send(result);
+    });
+
+    // delete single complains
+    app.delete("/complains/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await complainsCollection.deleteOne(query);
       res.send(result);
     });
 
