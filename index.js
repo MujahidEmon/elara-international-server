@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://elara-international.web.app", "http://localhost:5173", "https://elara-int-admin.web.app"],
+    origin: ["https://elara-international.web.app", "http://localhost:5173" , "http://localhost:5174", "https://elara-int-admin.web.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
