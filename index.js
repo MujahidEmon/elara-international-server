@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: ["https://elara-international.web.app"],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
