@@ -5,8 +5,12 @@ require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
-app.use(cors());
 app.use(express.json());
+app.use(cors({
+  origin: ['https://elara-international.web.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  credentials: true
+}));
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.sltxx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -376,5 +380,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log("elara-int server is running on port", port);
+  console.log(`elara-int server is running on port ${port}`);
 });
