@@ -6,11 +6,13 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
 app.use(express.json());
-app.use(cors({
-  origin: ['https://elara-international.web.app'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: ["https://elara-international.web.app"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
+  })
+);
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.sltxx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -367,6 +369,11 @@ async function run() {
       };
       const result = await ordersCollection.updateOne(filter, order, options);
       res.send(result);
+    });
+
+    // index.js or server.js
+    app.get("/ping", (req, res) => {
+      res.status(200).json({ message: "Server is awake!" });
     });
   } finally {
     // Do not close client here because app is running continuously
